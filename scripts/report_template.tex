@@ -1,0 +1,249 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{fontspec}
+\IfFontExistsTF{Cambria}{\setmainfont[Ligatures=NoCommon]{Cambria}}{\setmainfont{Latin Modern Roman}}
+\IfFontExistsTF{Calibri}{\setsansfont{Calibri}}{\setsansfont{Latin Modern Sans}}
+\usepackage{amsmath,amssymb,booktabs,graphicx,xcolor,tabularx,longtable,fancyhdr,array}
+\definecolor{navy}{HTML}{18354A}\definecolor{teal}{HTML}{167D8D}
+\usepackage[colorlinks=true,urlcolor=teal,linkcolor=teal]{hyperref}
+\hypersetup{pdftitle={Iran war risk and global financial markets in 2026},pdfauthor={Panagiotis Housos}}
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}\setlength{\headheight}{14pt}
+\setlength{\emergencystretch}{2em}\renewcommand{\arraystretch}{1.14}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small Iran war risk and financial markets}
+\fancyhead[R]{\small Panagiotis Housos | ph2606}
+\fancyfoot[L]{\footnotesize FRE-GY 7871A · Assignment 3 · 17 September 2026}
+\fancyfoot[R]{\thepage}
+\newcommand{\takeaway}[1]{\par\textbf{Investment implication.} #1\par}
+\newcommand{\fig}[2]{\begin{center}\includegraphics[width=#2\linewidth]{outputs/#1.pdf}\end{center}}
+\begin{document}
+\thispagestyle{empty}
+{\color{navy}\LARGE\sffamily\bfseries Iran war risk and global\\financial markets in 2026\par}
+\vspace{5pt}
+{\large Panagiotis Housos · ph2606\par}
+FRE-GY 7871A, NLP and the Investment Process · Fall 2026\\
+\href{https://github.com/ph2606/FRE-GY-7871A-Assignment3}{GitHub repository and executed notebook}
+
+\section*{1. Answer and investment decision}
+Iran-related conflict news coincides with a large change in the oil market, but this sample does not identify a stable, precisely estimated causal war-risk sensitivity across financial assets. The distinction matters: a strong oil-price trend is visible in the data; the portion caused by an isolated war-risk factor is much harder to establish.
+
+From 2 January to 15 September, WTI spot rises from \$57.21 to \$107.02 and Brent spot from \$61.98 to \$130.80. These are simple price increases of 87.07\% and 111.04\%. The \textbf{Brent minus WTI spot spread widens from \$4.77 to \$23.78 per barrel}. At the same time, equities finish above their January levels and Treasury yields rise. Those full-period changes include many other economic developments.
+
+The study combines the covariance-difference method in Rigobon and Sack's \emph{Effects of War Risk} with an Iran-specific news corpus and the identification framework in Rigobon's \emph{Identification through Heteroskedasticity}. There are 24 source-dated event sessions and 24 matched comparison sessions. In the centered adaptation, 13 of 17 outcome estimates fail a conservative diagnostic for a positive, sufficiently clear change in the two-year-yield variance. The remaining estimates also have wide intervals or poor agreement between the identifying moments. The six-market covariance difference has a rank-one approximation residual of 0.501; this is a diagnostic, not a formal rejection test.
+
+The separate NLP regressions measure associations with changes in news attention and negative vocabulary describing physical conflict and economic conditions. %%P_UNADJUSTED%% of %%PRIMARY_TESTS%% estimable coefficients have unadjusted $p<0.05$, and \textbf{none survives the multiple-test adjustment}. Strict text and interval requirements leave only %%REG_MIN_N%%--%%REG_MAX_N%% observations per model. Attention and the published global geopolitical-risk index are correlated at %%BENCH_ATT%% in their common %%BENCH_N%%-date sample. Negative vocabulary has little correlation with that index. These are different constructs.
+
+\textbf{My decision is to allocate 10\% of an illustrative diversified portfolio to a Treasury bill with about three months remaining, while retaining the diversified core.} I would not initiate a leveraged directional oil or Brent--WTI spread position from these text measures. The decision uses short-duration carry and a limited risk budget because the estimated timing signal is weak. At the 15 September three-month constant-maturity yield of 4.11\%, approximate three-month carry is 1.03\% on the bill allocation, or 0.103 percentage points on the whole portfolio, before costs. This benchmark is not an executable security quote.
+
+The supplementary social-media analysis covers 403 retrieved Truth Social text candidates. It gives a neutral qualitative reading of wording and subjects, with source and attribution checks. It does not provide numerical ratings of a public official or policy, and it does not claim a complete X/Twitter or media-post census.
+
+\newpage
+\section*{2. Data, coverage and the replication boundary}
+The requested period starts on 1 January 2026. The frozen observation cutoff is 16 September, the last full calendar day before collection. Providers have different publication lags: spot oil and Treasury yields end on 15 September, the broad trade-weighted dollar on 11 September, and most other series on 16 September. Missing observations are never forward-filled. Raw responses, source URLs, retrieval times and hashes are stored locally; no raw or derived data files are committed to GitHub.
+
+\textbf{Table 1. News-corpus construction.}
+%%CORPUS_TABLE%%
+The source is the Guardian's Iran-tag archive, paginated until dates precede 2026. Ordinary news and analysis in world, US news, business, environment, global development and science sections are retained. Opinion sections, live blogs and multimedia are excluded. A minimum of 80 extracted body words and a publication timestamp are required. Four download failures remain explicitly logged. This is one outlet's English-language sample, not all global reporting or representative public sentiment.
+
+Body text is the version retrieved on 17 September. The later of publication and last-modified timestamps provides the conservative baseline clock. Four bodies modified beyond the cutoff are excluded from both clock conventions and dictionary-frequency fitting. This prevents known future revisions entering the sample, but it does not reconstruct each article's original real-time text. A publication-clock sensitivity uses the same eligible bodies and acknowledges this remaining limitation.
+
+\textbf{Table 2. From the 2003 study to available 2026 data.}
+\begin{center}\small\begin{tabularx}{\linewidth}{p{.24\linewidth}XX}\toprule
+Market & Original study & This study \\\midrule
+Treasuries & Fitted off-the-run par yields & FRED 2-year and 10-year constant-maturity yields \\
+Inflation compensation & 10-year breakeven & FRED T10YIE; includes liquidity and risk premia \\
+Credit & Merrill Lynch BBB and high-yield spreads & ICE BofA BBB and high-yield option-adjusted spreads \\
+Equities & S\&P 500 & S\&P 500, Nasdaq, EFA and EEM USD ETF proxies \\
+Dollar & Broad trade-weighted dollar & Fed broad index plus DXY; different currency baskets \\
+Oil & 12-month futures, dollar change & WTI and Brent spot; separate rolling-futures robustness \\
+Gold & Gold dollar price & GLD adjusted return, a fund proxy \\
+Liquidity premium & On-the-run Treasury premium & Not replicated: matching curve/security data unavailable \\\bottomrule
+\end{tabularx}\end{center}
+Thus this is a public-data methodological replication and extension. Spot oil, rolling futures, ETF returns and OAS are not identical replacements for the original contracts and curves. Financial outcomes use $100\Delta\log P$ for positive prices, basis-point changes for yields/OAS, and dollar changes for the oil spread. Every joint model requires the same current date \emph{and preceding observation date}; otherwise the whole matched pair is removed.
+
+\section*{3. Oil trends and the meaning of the spread}
+\fig{figure1_oil}{.92}
+\textbf{Spread definition:} $S_t=P_t^{Brent,spot}-P_t^{WTI,spot}$, in dollars per barrel. A positive value means Brent is more expensive. Its change is $\Delta S_t=\Delta P_t^{Brent}-\Delta P_t^{WTI}$, using matching observation intervals. The 2026 sample has 165 valid spread changes. The observed level ranges from $-\$2.45$ to \$25.94; it is not constrained to be positive.
+
+WTI is a Cushing benchmark; Brent reflects a different physical crude market. Geography, quality, transport, refining demand, inventories and delivery timing can affect the spread. Disruption to seaborne Middle Eastern supply is an economically plausible channel, but the measured spread is not a probability of war or a pure war premium. \href{https://www.eia.gov/todayinenergy/detail.php?id=67424}{EIA's first-quarter review} also distinguishes physical prices and futures contract months.
+
+On 15 September the spot spread is \$23.78, while the difference between the two Yahoo rolling-futures quotes is about \$2.92. These are different instruments and potentially different delivery months; the second number is not a matched-maturity spread trade. The study never combines Brent spot with WTI futures.
+\takeaway{A wide physical spread makes energy exposure and contract choice important. It does not by itself justify shorting Brent against WTI. A spread position needs matched delivery months, basis-risk analysis, transaction costs and a separate entry rule.}
+
+\section*{4. Global financial trends}
+\fig{figure2_markets}{.94}
+The S\&P 500 gains 10.11\% from its first 2026 observation through 16 September, EFA 9.94\% and EEM 17.46\%; these are simple endpoint changes. EFA and EEM are USD-traded funds, so they combine foreign equity exposure and exchange-rate effects. They are not synchronized local-country index closes. GLD finishes 1.64\% below its first observation after substantial variation during the year.
+
+The two-year yield rises from 3.47\% to 4.67\%, and the ten-year from 4.19\% to 5.00\%. The 10s2s slope therefore narrows from 72 to 33 basis points: an endpoint \emph{bear flattening}, since both yields rise and the short end rises more. This describes the whole period; it is not an estimated war shock.
+
+Oil disruption can increase inflation pressure and push yields upward, while concern about activity or risk appetite can push yields downward. The 2003 study's reported Treasury-yield decline cannot be imposed on 2026. Likewise, DXY and the broad trade-weighted dollar can move differently because their baskets differ. Credit spreads measure compensation above a Treasury curve, not the same object as the Brent--WTI spread.
+\takeaway{The observed rise in both Treasury yields makes a long-duration position an unreliable automatic hedge against this conflict. I prefer a short bill for the defensive allocation and retain geographic diversification rather than infer a general sell-equities rule from war headlines.}
+
+\section*{5. What the NLP measures}
+Article relevance requires conflict/energy language and an Iran-related entity in the headline, or at least two body sentences containing both contexts. The literal rules and all retained source metadata are available in the code and local audit tables. They retrieve a subject; they are not a trained accuracy-validated classifier.
+
+\textbf{Attention} is the number of relevant articles assigned to a market session, divided by the number of calendar days since the preceding equity session. Thus a weekend interval is not treated as one calendar day. We use $A_t=\log(1+n_t/d_t)$ and its session change $\Delta A_t$ in the regressions. Zero means no retrieved relevant article in the measured interval, not proof that no war news occurred.
+
+\textbf{Sentiment around physical conflict} is represented by negative and uncertainty vocabulary, kept separate from attention. Whole paragraphs containing official/policy subjects or attribution cues are excluded; quoted spans are removed before sentence splitting. Retained sentences require physical-context language and exclude quotation-bearing fragments, personal/institutional pronouns and rhetorical questions. Public-official statements and policy assessments are outside this numerical target. These conservative rules also omit factual reporting and cannot guarantee semantic separation. They narrow the sample without establishing human-validated sentiment labels. Article attention independently retains all relevant original texts.
+
+Using the verified \href{https://sraf.nd.edu/loughranmcdonald-master-dictionary/}{March 2026 Loughran--McDonald dictionary}, category membership requires a positive year flag. Negative flags mean a word was removed. There are 2,345 active negative words and 297 uncertainty words. Alphabetic tokens of at least two characters form the denominator. For category $c$,
+\[
+L_{ct}=100\frac{\sum_{j\in t}\sum_{w\in c}tf_{wj}}{\sum_{j\in t}N_j}.
+\]
+Articles with fewer than 20 retained physical-context tokens do not enter lexical aggregation. Pooling counts gives every token equal weight; it is not an equal-article average. No eligible text gives a missing lexical value, not neutral sentiment. The financial dictionary transfers imperfectly to conflict reporting and does not interpret all negation, irony or aspect targets.
+
+The notebook also reports Assignment 1's exact retrospective weighting,
+\[
+ W_{cj}=\sum_{w\in c:tf_{wj}>0}\frac{1+\log(tf_{wj})}{1+\log(a_j)}\log\frac{N}{df_w},
+ \qquad a_j=\frac{N_j}{\text{distinct tokens in }j}.
+\]
+This is the sum of category weights, not scikit-learn's default normalized TF--IDF. Document frequencies use the eligible full corpus, so this supplement is not a real-time forecasting signal. Literal threat and realized-action patterns provide additional context counts. A diplomacy pattern is retained in the code but is removed by the numerical policy exclusion. These patterns do not turn document tone into the likelihood, severity or duration of war.
+
+\fig{figure3_news}{.86}
+
+\section*{6. News trends and external comparison}
+The conservative timing convention produces 917 relevant articles across %%NEWS_SESSIONS%% equity sessions; %%NUMERIC_DOCS%% documents have enough eligible text for lexical measurement, covering only %%LEXICAL_SESSIONS%% sessions. This sparse subset is less representative than the attention corpus. Dates refer to the assigned session, not necessarily the original publication month. For example, the late-February outbreak and subsequent revisions can enter March's market information intervals.
+
+\textbf{Table 3. News trends by assigned market month.}
+%%NEWS_MONTHLY%%
+September contains only 11 market sessions. Negative and uncertainty entries are equal-session averages of the token-weighted daily measures, omitting missing-text sessions. The attention column is an average of articles per calendar day within a session interval. The large March increase is visible in article activity; declining later coverage need not mean the underlying physical risk disappeared.
+
+The trend regression uses time in months and an indicator beginning 2 March, with Newey--West/HAC standard errors at five retained-observation lags. The attention step is +%%ATT_STEP%% log units and the time slope is %%ATT_TREND%% per month; both survive the ten-test adjustment. The negative-word trend is %%NEG_TREND%% percentage points per month ($p=%%NEG_TREND_P%%$); its post-outbreak level difference is also nonsignificant ($p=%%NEG_STEP_P%%$). The uncertainty-word step is +%%UNC_STEP%% percentage points ($q=%%UNC_STEP_Q%%$), but its time trend is not significant ($p=%%UNC_TREND_P%%$). These results describe a changing, selected article sample, not changes in public approval or an official's attitude.
+
+As an external check, the \href{https://www.matteoiacoviello.com/gpr.htm}{Caldara--Iacoviello global GPR index} uses newspaper searches for adverse geopolitical events. Its current vintage ends on 14 September. On the common %%BENCH_N%% dates, correlation with our log attention is %%BENCH_ATT%%; correlation with our negative-word share is %%BENCH_NEG%%. GPR includes other countries and conflicts, so it cannot validate an Iran-specific causal shock. Its revised daily observations are not assumed to have been available each day in real time.
+\takeaway{News attention is useful for monitoring when the conflict dominates coverage. It should trigger a review of exposure and sources, not an automatic trade. A fall in negative vocabulary or article volume is not sufficient evidence to remove an energy-risk hedge.}
+
+\section*{7. Identification through heteroskedasticity}
+In the reduced form, market changes respond to an unobserved war factor $w_t$ and other shocks:
+\[
+\Delta X_t=d\,w_t+u_t.
+\]
+If loadings are stable, $w_t$ is orthogonal to the other shocks, and \emph{only} its variance changes between news-event sessions $H$ and comparison sessions $L$, then
+\[
+\Delta\Omega=\Omega_H-\Omega_L=\delta dd',\qquad \delta>0.
+\]
+This is a positive rank-one covariance restriction. Merely using robust standard errors in OLS is not identification through heteroskedasticity. Rigobon's general simultaneous-equation framework requires informative changes in relative shock variances and sufficient rank; a common scaling of every variance is not enough.
+
+Normalize the two-year Treasury response to one and let $x_t$ be its basis-point change and $y_t$ an outcome. Define $a=\Delta\operatorname{Var}(x)$, $b=\Delta\operatorname{Cov}(x,y)$ and $c=\Delta\operatorname{Var}(y)$. The two moment estimators are
+\[
+\widehat d_1=b/a,\qquad \widehat d_2=c/b.
+\]
+The pooled IV estimator instruments $x_t$ with $s_tx_t$ and $s_ty_t$, where $s_t=+1$ in $H$ and $-1$ in $L$. Equal-sized matched regimes make this contrast valid. The centered adaptation demeans separately within each regime and uses the same $1/n$ convention throughout. The original paper assumes zero-mean changes and uses uncentered second moments; that exact convention is also implemented as a sensitivity.
+
+\textbf{Event design.} Twenty-five sourced developments collapse to 24 sessions. Selection uses documented events, not large asset returns. The chronology is retrospective and not preregistered. Nearby controls are selected without replacement, within 35 calendar days and in the same pre-/post-28-February period. Controls cannot be selected events or immediately adjacent trading sessions; their attention is at or below their own month's median. Same-month and then nearest dates are preferred. This does not guarantee less news than each event: two pairs have equal attention and two have greater attention in the control. The labels express a variance hypothesis, not an observed fact.
+
+The 7 April ceasefire announcement at 18:32 EDT maps to 8 April. Weekend events map to the next equity session. Other source dates carry explicit uncertainty flags and are shifted one session in a robustness check. News-body features use the first observed equity session whose 15:00 ET cutoff is at or after the effective timestamp. This is a conservative convention, not exact synchronized observation of every oil, bond and equity close.
+
+The bootstrap resamples matched pairs together, with 1,999 repetitions for the main tables and 399 for sensitivity checks. It preserves within-pair dependence but assumes independence between pairs. When $a\leq0$ or the 95\% bootstrap interval for $a$ includes zero, coefficient intervals are suppressed and the raw estimates remain diagnostic. This is a conservative normalization check, not a formal weak-IV test. No ordinary first-stage statistic is used as proof of identification.
+
+\textbf{Historical comparison.} In the supplied 2003 paper, a war-factor movement normalized to a 25-bp decline in the two-year yield is associated with a 26-bp ten-year-yield decline, a 3.76\% S\&P decline, 5-bp BBB and 34-bp high-yield spread increases, a 0.44\% broad-dollar decline and a \$0.77 rise in 12-month oil futures (pooled estimates, Table 2). Those units and proprietary source series differ from several 2026 proxies. They are reference results, not imposed signs.
+
+\section*{8. Estimated market sensitivities and their limits}
+\textbf{Table 4. Responses scaled to a 25-bp decline in the two-year yield.}
+%%HET_TABLE%%
+Price outcomes are log-return percentage points; yields and credit spreads are bp; the oil spread is dollars per barrel. $d_1$, $d_2$ and pooled columns are all multiplied by $-25$, because the anchor is stored in bp. W flags an uncertain/nonpositive anchor variance increase. A dash for a confidence interval means inference is withheld. Unflagged estimates still require the other identifying assumptions.
+
+Most outcomes use 24 pairs. Brent spot/spread and credit spreads retain 20 after observation-interval checks. Their different variance diagnostics therefore partly reflect \emph{different date samples}; they do not establish that those markets are intrinsically easier to identify. For the 24-pair anchor sample, the variance ratio is 1.783 and $a=14.125$ bp$^2$, but its bootstrap interval crosses zero. Large differences between $d_1$ and $d_2$ are further evidence against treating the pooled number as a precise structural sensitivity.
+
+The sign of a 25-bp yield decline is not automatically the sign of increasing Iran war risk. An oil supply and inflation shock and a growth/risk-aversion shock can have opposite yield effects. A separate oil normalization scales to a 10\% simple increase in WTI rolling futures, i.e. $100\log(1.10)=9.531$ log points. All 17 oil-anchor comparisons fail the same conservative variance-shift diagnostic. Their raw conditional calculations are available in the notebook, with inference withheld.
+\takeaway{Neither normalization supports a confident position size or an automatic cross-asset hedge ratio. In particular, the estimated S\&P response under the yield normalization should not be interpreted as a forecast that war increases stocks.}
+
+\fig{figure4_identification}{.97}
+The standardized six-market covariance contrast has eigenvalues approximately\[1.93,\quad 0.69,\quad 0.15,\quad -0.14,\quad -0.35,\quad -0.78.\] Under the maintained population restriction only one is positive and the others are zero. The nearest positive rank-one approximation leaves 50.1\% of the Frobenius norm unexplained. Sampling variation can produce negative eigenvalues, so this is a visible diagnostic rather than a formal small-sample rank-test rejection.
+
+\textbf{Table 5. Stability checks: raw pooled responses under the same yield normalization.}
+%%ROBUST_TABLE%%
+The WTI estimate changes sign between centered and uncentered moments, and again across calendar subperiods. Shifting uncertain events makes the anchor variance contrast negative. Removing FOMC meeting sessions drops four complete pairs: event sessions on 18 March and 17 June, and control sessions on 28 January and 29 April. Other macroeconomic announcements and oil-supply news are not thereby eliminated.
+
+The NLP alternative uses top-quartile attention sessions within each month and the same comparison-date rules, producing 41 pairs. It avoids using returns to choose regimes but assumes that news volume proxies shock variance. Repeated articles, revisions and reporting driven by asset prices can break that assumption. Leave-one-pair-out estimates and separate January--May/June--September results are retained in the notebook.
+
+\textbf{Variance attribution.} Following the original paper, the incremental component would be $q_j=\widehat d_j^2a$. Its event-session share is $q_j/\widehat{\operatorname{Var}}_H(y_j)$; the full-period cumulative-variance calculation is
+\[
+ \frac{n_Hq_j}{T\widehat{\operatorname{Var}}_{all}(y_j)},
+\]
+using the actual all-period sample and an additional serial-independence assumption. The notebook supplies these algebraic quantities without clipping negative or excessive shares. Given the weak normalization and poor single-factor fit, \textbf{I do not interpret them as established lower bounds on variance caused by war}. This preserves the paper's calculation while making its failed or uncertain assumptions visible.
+\takeaway{Sensitivity to date timing, moments and subperiods rules out a large position based on one attractive coefficient. Monitoring physical supply and reducing unwanted leverage is more defensible than treating a fragile estimated factor as tradable.}
+
+\section*{9. NLP and daily financial changes}
+The complementary regression is descriptive:
+\[
+\Delta Y_t=\alpha+\beta_A z(\Delta A_t)+\beta_N z(\Delta L_{Nt})
+ +\rho\Delta Y_{t-1}+\eta\log d_t+\text{month effects}+e_t.
+\]
+Each text feature is scaled by its full 2026 sample standard deviation, so a coefficient represents a one-SD change in that feature. Current and lagged financial outcomes must match their equity-session intervals. No contemporaneous oil, VIX or dollar mediator is added as a control. HAC inference uses five retained-observation lags and finite-sample correction; irregular gaps complicate the dependence correction. Models require at least 40 complete observations. BBB and high-yield OAS fall below that threshold here and remain in the heteroskedasticity analysis only. Benjamini--Hochberg adjustment covers %%PRIMARY_TESTS%% estimable coefficients from two features and %%PRIMARY_OUTCOMES%% outcomes, out of 36 planned comparisons.
+
+\textbf{Table 6. News coefficients; unadjusted p-values in parentheses.}
+%%REG_TABLE%%
+Samples differ because prices, prior dates, lexical observations and lagged controls must all be available. Missing lexical values are not replaced with zero. Only %%REG_MIN_N%%--%%REG_MAX_N%% complete observations remain per model, beginning 3 March; the descriptive market/news history still starts in January. %%P_UNADJUSTED%% primary coefficients have $p<0.05$ and none has $q<0.05$. The adjusted minimum q-value is %%MIN_Q%%. A nonsignificant coefficient does not prove that conflict information has no market effect; this restricted sample has limited power.
+
+Alternative regressions replace negative vocabulary with uncertainty vocabulary, use publication clocks, lag the news features one session, and remove FOMC dates. Their estimates and sample dates are saved separately. Full-sample vocabulary choices, revised text and provider-vintage data make this a retrospective association study, not an out-of-sample trading backtest.
+
+\fig{figure5_regressions}{.98}
+The displayed intervals are unadjusted 95\% HAC intervals. The multiple-test result applies across the entire %%PRIMARY_TESTS%%-coefficient primary family, including yield and spread outcomes not shown in the figure. Text sentiment can be noisy because the meaning of a favorable word depends on its target: fewer casualties, success of an attack and optimism about negotiations are different propositions.
+\takeaway{The regressions do not support timing an oil, gold, equity or dollar trade using these daily text changes alone. I use the text series as monitoring information and keep the defensive bill allocation modest.}
+
+\section*{10. Position, carry and risks}
+The proposed 10\% allocation is an analyst risk-budget choice, not an optimized or backtested weight. For an illustrative \$100,000 portfolio, \$10,000 would be allocated to a US Treasury bill maturing in about three months, subject to its actual purchase price and liquidity. The 4.11\% constant-maturity benchmark gives approximate carry of $4.11\%\times0.25=1.0275\%$, about \$102.75 on that sleeve, before costs and taxes.
+
+\textbf{Table 7. Transparent interest-rate stress illustration.}
+%%INVEST_TABLE%%
+Assume duration of 0.25 years and use $\Delta P/P\approx-D\Delta y$. The instantaneous price stress is separate from three-month carry; it is not a forecast of total return under a fully modeled rate path. Holding a purchased bill to maturity fixes its nominal payoff, while early sale exposes its market value to rates. Actual accrued time and the bill's price determine exact yield and return.
+
+The main costs are reinvestment risk, inflation reducing real purchasing power, and opportunity cost if equities or energy appreciate. This allocation will not fully hedge an energy-importing business or a portfolio with large oil sensitivity. Such exposures may require a separately sized, maturity-matched hedge. I would review the position if physical shipping access materially changes, cash-flow needs change, or the evidence improves enough to support a distinct signal. No trade has been placed and no profitable strategy is claimed.
+
+\section*{11. Trump posts: platforms, coverage and qualitative sentiment}
+The \href{https://github.com/stiles/trump-truth-social-archive}{archive documentation} points to the updated \href{https://ix.cnn.io/data/truth-social/truth_archive.json}{CNN-hosted Truth Social archive}; the older GitHub workflow stopped in October 2025. The retrieved snapshot contains 5,697 records dated 1 January--16 September in New York time. Of these, 1,894 have empty readable text and 2,775 have media. Blank text is missing evidence, not neutral language.
+
+A transparent case-insensitive rule searches Iran/Iranian/Iranians, Hormuz, Tehran, Khamenei, Kharg, Epic Fury and Midnight Hammer. It retrieves 403 candidate records, representing 388 distinct text strings. Independent reconstruction from the raw snapshot confirms every candidate ID, decoded text and local date. Repeated wording under different IDs is retained as separate publication activity.
+
+The factual attribution audit finds 43 explicit RT markers, four explicit attribution prefixes, three URL-only records and 109 records containing URLs. Eleven relevance matches occur only in URL text. Sixteen candidates contain media not transcribed here. The archive schema cannot establish original authorship of every displayed word. Literal subject flags cover shipping/energy, negotiations/conditions, military operations, nuclear matters, trade/sanctions and people/humanitarian matters; the flags can overlap and are not sentiment judgments.
+
+\fig{figure6_social}{.95}
+These are \textbf{all matches to the stated retrieval rule in the downloaded readable-text snapshot}, not all Iran-war posts. Media text, implicit references, linked page contents, deletions and archive gaps remain outside a complete audit. Truth Social is not relabeled X/Twitter. \href{https://docs.x.com/x-api/posts/search/introduction}{X documentation} distinguishes recent search from authenticated full-archive retrieval; no verified complete 2026 X corpus was acquired.
+
+The local Twitter readings inform the cleaning, target-awareness and validation approach. This appendix uses a neutral qualitative reading of sentiment and language rather than numerical ratings of a public official or policy. The posts measure account communication; they do not measure representative investor or public sentiment. Claims about military outcomes and prices remain attributed statements unless separately corroborated.
+
+\textbf{Table 8. Source-linked readings of selected posts, in chronological order.}
+%%SOCIAL_EXAMPLES%%
+These examples are not a ranking. Their original IDs were also matched against saved American Presidency Project records. Dates here use New York time; the Project's display uses Pacific time. The full candidate and per-record relevance/attribution audits are local reproducible outputs.
+
+Two posts on \href{https://www.presidency.ucsb.edu/documents/truth-social-posts-june-11-2026}{11 June} illustrate why intraday sequence matters: a morning account of planned strikes is followed by an afternoon account of cancellation linked to negotiations. Treating the day as one document would erase that order. A favorable adjective about a military outcome is also not equivalent to lower physical war risk. Conditions such as ``if'' and ``until,'' the target of praise or criticism, and whether a passage is quoted must be read in context.
+
+Only one retrieved candidate explicitly names WTI, and none explicitly names Brent. The posts cannot supply the observed Brent--WTI spread. A statement forecasting lower oil prices is not a measured oil-price response. This appendix therefore does not regress a numerical rating of the author on prices or claim that an individual post caused a daily return.
+\takeaway{Use source-linked posts to locate claims and possible information times, then verify developments and market data independently. A single polarity label would conceal conditional statements and multiple subjects, making it a poor basis for an oil trade.}
+
+\section*{12. What the seven Twitter readings contribute}
+\small
+\begin{longtable}{p{.30\linewidth}p{.65\linewidth}}
+\toprule Supplied reading & Applied lesson and limitation \\\midrule\endhead
+\emph{Twitter sentiment analysis overview}, unattributed, n.d., 10 pp. & Establish a collection--cleaning--analysis sequence. The historical Tweepy examples do not demonstrate contemporary full-history access. Preserve raw originals and audit retrieval coverage. \\
+Yalin Yener, \emph{Step by Step: Twitter Sentiment Analysis in Python}, 2020, 18 pp. & Separate text retrieval from normalization and deduplication. TextBlob and VADER are different models; stripping punctuation/capitals before an emphasis-aware model can remove useful information. Word clouds are vocabulary descriptions, not validation. \\
+Hamid Bagheri and Md Johirul Islam, \emph{Sentiment analysis of twitter data}, 2017, 5 pp. & Short text, abbreviations and context complicate dictionary methods. A large neutral class can reflect coverage or factual language and is not an accuracy estimate. \href{https://arxiv.org/abs/1711.10377}{arXiv record}. \\
+Psomakelis et al., \emph{Comparing Methods for Twitter Sentiment Analysis}, KDIR 2014, 225--232 & Word/character representations and contextual features matter. Benchmark accuracy on annotated tweets does not transfer automatically to war-related posts; duplicate/event clusters should not leak between training and evaluation. \href{https://doi.org/10.5220/0005075302250232}{DOI}. \\
+Carvalho and Plastino, \emph{On the evaluation and combination of state-of-the-art features in Twitter sentiment analysis}, online 2020; \emph{Artificial Intelligence Review} 54 (2021), 1887--1936 & Compare lexical, surface, n-gram and embedding features under domain-appropriate validation. The cited binary benchmarks do not establish a valid neutral/mixed classifier here. Preserve negation and keep feature fitting within training partitions. \href{https://doi.org/10.1007/s10462-020-09895-6}{DOI}. \\
+\emph{Exploring Differences in the Sentiment Analysis Tools using Twitter Data concerning Autism Awareness}, supplied presentation, 13 slides & Distinguish a trained classifier from the scikit-learn library. Correct the slide's metric label: $TN/(FP+TN)$ is specificity, not precision; precision is $TP/(TP+FP)$. VADER components are not calibrated probabilities. \\
+\emph{Sentiment Analysis}, Stanford-derived supplied slides, 81 slides & Identify the attitude holder, target and textual unit. Negation, irony, discourse order and domain shifts matter. Favorable language about an operation and reduced war risk are different propositions. Authorship/date are not inferred solely from editable file metadata. \\\bottomrule
+\end{longtable}
+\normalsize
+All seven supplied files were read. No independent human-labeled evaluation set was provided or created. The project therefore does not report classifier accuracy, inter-annotator agreement, or a validated probability of war. Automated source reconciliation is useful, but it is not independent student verification or human ground truth.
+
+\section*{13. Limits of the answer}
+The strongest observed results concern oil levels, the physical spread, the news-activity pattern and instability of the structural estimates. Remaining limits are the single-outlet news sample, revised body text, selected and sometimes date-only events, imperfect synchronization of daily closes, heterogeneous market proxies, a short sample, potentially changing non-war shocks, incomplete social-platform/media coverage, and the absence of an independently labeled sentiment set. The combination of methods makes these limits testable and visible; it does not remove them.
+
+The original framework is valuable precisely because it does not require directly observing war probability. Its benefit still depends on credible covariance restrictions. Here the model checks limit the conclusion: war-related information belongs in investment monitoring, while a precise causal hedge ratio or a profitable sentiment-timing rule is not established.
+
+\newpage
+\appendix
+\section*{Appendix A. Event chronology and matched comparison dates}
+Descriptions are factual source paraphrases. The calendar was selected from documented developments without filtering on financial returns. A question mark denotes uncertainty about the initial event clock. The full code retains each timing basis and source URL.
+%%EVENT_TABLE%%
+
+\section*{Appendix B. Sources and reproducibility}
+\textbf{Core references.} Rigobon, Roberto (2003), ``Identification Through Heteroskedasticity,'' \emph{Review of Economics and Statistics} 85(4), 777--792, \href{https://doi.org/10.1162/003465303772815727}{DOI}. Rigobon, Roberto, and Brian Sack (2003), ``The Effects of War Risk on U.S. Financial Markets,'' NBER Working Paper 9609, April, \href{https://www.nber.org/papers/w9609}{NBER}; the supplied 16-page version determines the quoted historical tables. A later \href{https://www.federalreserve.gov/pubs/feds/2003/200318/200318pap.pdf}{Federal Reserve version} has a different sample window and must not be silently substituted.
+
+\textbf{News and text.} Guardian \href{https://www.theguardian.com/world/iran}{Iran archive}; article URLs and hashes are retained per document. Loughran and McDonald (2011), ``When Is a Liability Not a Liability? Textual Analysis, Dictionaries, and 10-Ks,'' \emph{Journal of Finance} 66(1), 35--65; verified \href{https://sraf.nd.edu/loughranmcdonald-master-dictionary/}{March 2026 release}. Caldara and Iacoviello (2022), ``Measuring Geopolitical Risk,'' \emph{American Economic Review} 112(4), 1194--1225; \href{https://www.matteoiacoviello.com/gpr.htm}{data downloaded 17 September 2026}. The seven social-text references are listed in Section 12.
+
+\textbf{Market sources.} EIA/FRED \href{https://fred.stlouisfed.org/series/DCOILWTICO}{DCOILWTICO} and \href{https://fred.stlouisfed.org/series/DCOILBRENTEU}{DCOILBRENTEU}; Treasury/FRED \href{https://fred.stlouisfed.org/series/DGS2}{DGS2}, \href{https://fred.stlouisfed.org/series/DGS10}{DGS10}, \href{https://fred.stlouisfed.org/series/DGS3MO}{DGS3MO}; FRED \href{https://fred.stlouisfed.org/series/T10YIE}{T10YIE}, \href{https://fred.stlouisfed.org/series/BAMLC0A4CBBB}{BAMLC0A4CBBB}, \href{https://fred.stlouisfed.org/series/BAMLH0A0HYM2}{BAMLH0A0HYM2}, \href{https://fred.stlouisfed.org/series/DTWEXBGS}{DTWEXBGS}. Yahoo Finance supplies CL=F, BZ=F, \^{}GSPC, \^{}IXIC, \^{}VIX, DX-Y.NYB, EFA, EEM and GLD. OAS month-end weekend adjustments are retained in the raw data but excluded whenever joint intervals do not match. Provider vintage and observation endpoints are documented separately.
+
+\textbf{Files.} The repository contains the executed notebook, acquisition and analysis code, focused tests, environment locks and an accurate \texttt{AI\_USE.md}. Local ignored directories contain the raw snapshots, extracted texts, manifests, article/post audits, full result tables and figures. Re-running from the frozen caches is deterministic; fresh downloads can change historical results because news and market sources revise. The PDF is a separate submission artifact. The README gives the full reproduction sequence.
+\end{document}
