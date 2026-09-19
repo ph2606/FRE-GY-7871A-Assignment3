@@ -2,25 +2,39 @@
 
 Panagiotis Housos | ph2606 | Fall 2026
 
-[Open the executed notebook](assignment3.ipynb) for the Iran war-risk study:
-WTI and Brent trends and their spot spread; global asset responses; the
-Rigobon–Sack heteroskedasticity method; news attention and physical-conflict
-sentiment; identification checks; and an explicit investment decision.
-The appendix analyzes retrieved Truth Social communication qualitatively and
-audits coverage, attribution and the distinction from X/Twitter.
+[Open the executed notebook](assignment3.ipynb) for the Iran war-risk study.
+The report follows Rigobon and Sack's original uncentered method and replicates
+the purposes of Tables 1–3: a dated news chronology, three IV sensitivity
+estimates, and conditional variance shares. It then studies duration-related
+news, market timing, and an alternative with separate cessation and fighting
+information. WTI, Brent, their physical spread, ten-year yields, the yield
+curve, global assets, and the economic comparison with 2003 are included.
 
-The frozen observation cutoff is September 16, 2026. Spot oil and Treasury
-yields are available through September 15 in this snapshot, and the broad
-dollar through September 11. Prices and news bodies can be revised later.
-The study does not establish a stable causal war-risk hedge ratio or a
-profitable text-timing strategy. The proposed 10% bill allocation is an
-illustrative risk-budget decision, not an optimized backtest result.
+The observation cutoff is **September 16, 2026**. Fitted off-the-run Treasury
+par yields end on September 11, CMT yields and spot oil on September 15, and
+most exchange-traded series on September 16. The main fit uses 23 major-news
+and 23 nearest comparison sessions. Every available response has an uncertain
+reference-variance shift, so the results do not establish causal hedge ratios.
+None of 48 forward news coefficients survives multiple-test adjustment;
+five of 16 prior-return timing checks do. Those checks matter because a daily
+archive becomes available after the underlying news.
 
-This repository contains the notebook with saved outputs, acquisition and
-analysis code, focused tests, environment files, report-building code and
-[AI_USE.md](AI_USE.md). **No data files are committed.** Raw responses,
-article/post text, generated CSV files, figures and internal notes remain in
-ignored local directories. The PDF is a separate submission artifact.
+GDELT bulk acquisition covers 259 daily files, retaining Iran-linked event
+records and source URLs. Its event codes are **not downloaded full article
+text**. All 371,309 canonical source URLs and 1,025 publisher headlines receive
+explicit categories, with mixed and unclear cases retained. All 177 sessions
+have some GDELT war-coded news, so a non-major-event day is not a literal
+no-news day. Publisher bodies supply context and relevance checks.
+The Trump appendix covers 403 retrieved Truth Social text candidates,
+qualitative interpretation, subject cues and market-session timing.
+It does not claim a complete X/Twitter or media-post archive, calibrated
+war-end probabilities, or numerical political sentiment ratings.
+
+The repository contains code, the notebook with saved aggregate outputs,
+focused tests, pinned dependencies, report-building sources and
+[AI_USE.md](AI_USE.md). **No data files are committed.** Raw responses, article
+and post datasets, generated CSV files, figures and internal notes remain
+local. The PDF is a separate submission artifact.
 
 ## Reproduce
 
@@ -32,44 +46,54 @@ $assignmentPython = ".\.venv\Scripts\python.exe"
 & $assignmentPython -m pip install -r requirements-lock.txt
 & $assignmentPython -m ipykernel install --sys-prefix --name assignment3 --display-name "Python 3 (Assignment 3)"
 
-& $assignmentPython -m pytest tests -q
+& $assignmentPython -m pytest tests -q --basetemp=outputs/pytest_temp
 & $assignmentPython scripts/01_collect_news.py
 & $assignmentPython scripts/02_get_market_data.py
-& $assignmentPython -m src.benchmark
 & $assignmentPython scripts/03_build_text_features.py
 & $assignmentPython scripts/04_social_appendix.py
 & $assignmentPython -m src.social_audit
+& $assignmentPython -m src.social_timing
+& $assignmentPython -m src.treasury_curve
+& $assignmentPython -m src.gdelt_bulk
+& $assignmentPython -m src.duration_news
 & $assignmentPython scripts/05_analyze.py
 & $assignmentPython scripts/06_build_deliverables.py
 & $assignmentPython scripts/07_execute_notebook.py
 ```
 
-Scripts resolve paths relative to the repository; no local machine path or API
-credential is required. Acquisition is cached and resumable. The first news
-download may take several minutes. A public service can rate-limit requests;
-the collection audit preserves failures rather than making up observations.
-The dictionary is pinned to the authors' March 2026 release by SHA256.
+No API credential is needed for this pipeline. Acquisition is cached and
+resumable. GDELT downloads roughly 1.5 GB of compressed daily global responses
+and retains the filtered Iran records plus response hashes, not every global
+ZIP. Its DOC API collector in `src/gdelt_news.py` is optional; repeated rate
+limits made the bulk archive the empirical source. Failed/capped requests are
+audited, never interpreted as zero news. Guardian API access would need a key;
+the included publisher collection uses the public archive.
 
-The notebook recalculates text features, the source-membership audit,
-regressions, bootstrap estimates and figures from the local inputs. The saved
-outputs preserve the reported snapshot. A later uncached download may differ
-even with the same observation cutoff, because the news archive, body text,
-market observations and social archive are revised. Manifests record source
-URLs, requested/actual coverage, hashes and retrieval information.
+The notebook recalculates publisher features, verifies social-candidate
+membership, builds timing and event classifications, estimates Tables 1–3
+with 1,999 within-regime bootstrap draws, performs robustness checks and
+local projections, and generates six figures. Saved outputs preserve the
+analyzed snapshot. A later uncached acquisition can differ at the same date
+cutoff because sources revise bodies, observations and archives.
+Manifests record source URLs, coverage, retrieval information and SHA256.
+Snapshot assertions in the notebook deliberately expose changed inputs.
 
-The source-cited event calendar is embedded in `src/events.py` as part of the
-documented research design. It is retrospective, not preregistered or
-exhaustive, and uses no market-return thresholds. The paper's original
-uncentered moments and a centered adaptation are both implemented. Confidence
-intervals are withheld where the positive anchor-variance shift is uncertain;
-raw diagnostics remain visible. Variance shares are conditional calculations,
-not established causal attributions.
+The source-linked research calendar is embedded in `src/events.py`. It is
+retrospective and nonexhaustive, uses no return-magnitude selection, and maps
+news to US sessions. `src/paper_replication.py` implements uncentered
+second moments, no-intercept single/pooled IV and the actual all-day
+denominator for Table 3. `src/iran_study.py` controls matching, units,
+missing intervals, normalization and the empirical alternative.
+`src/social_timing.py` uses the NYSE calendar; those cash-equity hours do not
+describe Sunday oil-futures trading. GDELT bulk data use next-day archive
+availability, not invented intraday publisher timestamps.
 
-The social appendix retrieves all literal keyword matches in the saved archive's
-readable text. It does **not** claim all Iran-related posts: untranscribed media,
-implicit references, linked page contents, deletions and archive gaps remain.
-Truth Social is never relabeled X. No numerical official/policy sentiment
-ratings or human-labeled accuracy estimates are produced.
+The original year-ahead oil contract, dollar gold series and on-the-run
+liquidity premium are not identically reproduced. Nearby WTI, GLD and OAS
+are explicitly labeled proxies; the unavailable premium stays blank.
+The original 25-bp two-year decline is a conditional scale choice, not
+automatically the direction of increased Iran-war risk. Variance shares and
+conventional IV t-statistics do not repair weak identification.
 
 ## PDF
 
@@ -81,6 +105,7 @@ xelatex -interaction=nonstopmode -halt-on-error report.tex
 Copy-Item -LiteralPath report.pdf -Destination Panagiotis_Housos_Assignment3.pdf
 ```
 
-The report uses Cambria/Calibri where available and Latin Modern fallbacks.
-Upload the separate PDF to Brightspace with the repository URL. The PDF and
-generated data remain outside the GitHub submission files.
+The shared narrative in `scripts/study_content.py` supplies both the report
+and notebook. Tables and figures come from computed outputs. Cambria/Calibri
+are used when available, with Latin Modern fallbacks. Submit the separate
+PDF with the repository URL.

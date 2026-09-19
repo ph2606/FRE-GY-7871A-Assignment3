@@ -1,30 +1,32 @@
 # AI use disclosure
 
-OpenAI Codex provided substantial assistance with this assignment, including
-reading the supplied references, finding and downloading public sources,
-writing acquisition and analysis code, constructing the notebook and report,
-and testing the implementation. Parallel agents assisted with paper reviews,
-market-data collection, the social-post archive, and independent code and
-methodology checks. These automated reviews are not independent student
-verification or human ground-truth annotation.
+OpenAI Codex provided substantial assistance with reading the supplied
+references, locating and downloading public sources, implementing the
+acquisition and analysis code, building the notebook and report, and testing
+the implementation. Parallel agents assisted with reference reviews, market
+and social-source research, and methodology checks. Automated reviews are
+not independent student verification or human ground-truth annotation.
 
-The student supplied the assignment, local readings, professor's comments,
-earlier submission requirements, and the requirement for an investment
-decision. The student also clarified that the social-media appendix should
-include Truth Social while distinguishing platforms. This disclosure does
-not claim additional student research or verification that has not occurred
-in the recorded work.
+The student supplied the assignment, course readings and submission
+requirements, and specified that Truth Social should be included while
+distinguishing platforms. This disclosure does not claim additional
+student research or verification that is not documented.
 
-The numerical work uses downloaded observations, explicit NLP rules and the
-Loughran–McDonald dictionary. The war-risk estimates implement covariance
-differences and instrumental variables, with diagnostic and robustness checks.
-No data, coefficients, accuracy claims or significance findings were invented.
-Synthetic examples are used only in software tests; the portfolio carry and
-rate-shock table are explicitly illustrative assumptions.
+Numerical results use downloaded observations and explicit methods.
+The main analysis implements the source paper's uncentered second moments,
+three instrumental-variable estimators and conditional variance calculations.
+GDELT CAMEO event metadata and publisher headline rules supply separate
+cessation/fighting information. Timing audits preserve source clock
+limitations. The social appendix contains a reproducible retrieval audit,
+literal subject cues and neutral qualitative interpretation.
 
-The Truth Social appendix contains a reproducible coverage/attribution audit
-and neutral qualitative readings. It does not provide numerical ratings of a
-political official or policy, and it does not establish complete X or media
-coverage. No human-labeled sentiment set was created. The study does not claim
-a calibrated probability of war, a causal effect of individual posts, or a
-profitable trading backtest. No trade was placed.
+No data, coefficients, accuracy estimates or significance findings were
+invented. Synthetic data appear only in software tests. The illustrative
+bill allocation and duration/carry calculations are stated assumptions,
+not an optimized backtest. No trade was placed.
+
+No human-labeled Iran-war sentiment benchmark was created. The study does
+not claim a calibrated probability of war termination, a causal effect of
+individual posts, complete X/Twitter or media coverage, or numerical
+evaluations of a political official or policy. The proposed intraday
+causal design is distinguished from the completed daily empirical analysis.
