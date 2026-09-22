@@ -79,7 +79,7 @@ def main():
     empty_with_media = 0
     for record in archive:
         stamp = pd.Timestamp(record['created_at']).tz_convert('America/New_York')
-        if pd.Timestamp('2026-01-01', tz='America/New_York') <= stamp < pd.Timestamp('2026-09-17', tz='America/New_York'):
+        if pd.Timestamp('2026-01-01', tz='America/New_York') <= stamp < pd.Timestamp('2026-09-19', tz='America/New_York'):
             decoded = decode_text(record.get('content', ''))
             if not decoded and record.get('media'):
                 empty_with_media += 1

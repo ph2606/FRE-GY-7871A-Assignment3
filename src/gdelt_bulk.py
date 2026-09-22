@@ -11,6 +11,7 @@ import hashlib, io, json, time, zipfile
 import numpy as np
 import pandas as pd
 import requests
+from .study_config import CONTEXT_START, MARKET_END
 
 ROOT=Path(__file__).resolve().parents[1]
 FIELDS={0:'event_id',1:'event_date',7:'actor1_country',17:'actor2_country',
@@ -86,7 +87,7 @@ def classify_records(frame):
 def collect(workers=3):
     (ROOT/'outputs').mkdir(parents=True,exist_ok=True)
     (ROOT/'data/processed').mkdir(parents=True,exist_ok=True)
-    dates=pd.date_range('2026-01-01','2026-09-16')
+    dates=pd.date_range(CONTEXT_START,MARKET_END)
     frames=[];audit=[]
     with ThreadPoolExecutor(max_workers=workers) as pool:
         jobs={pool.submit(one_day,date):date for date in dates}

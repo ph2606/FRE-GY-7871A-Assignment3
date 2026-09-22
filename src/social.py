@@ -39,7 +39,7 @@ def build():
     rows=[]
     for r in records:
         stamp=pd.Timestamp(r['created_at']).tz_convert('America/New_York')
-        if not pd.Timestamp('2026-01-01',tz='America/New_York')<=stamp<pd.Timestamp('2026-09-17',tz='America/New_York'):
+        if not pd.Timestamp('2026-01-01',tz='America/New_York')<=stamp<pd.Timestamp('2026-09-19',tz='America/New_York'):
             continue
         text=html.unescape(BeautifulSoup(r.get('content',''),'html.parser').get_text(' ',strip=True))
         # IDs stay strings: they exceed IEEE 754's exact integer range.
@@ -61,7 +61,7 @@ def build():
     audit={'archive_records_all_years':len(records),'records_in_window':len(frame),'unique_ids':frame.id.nunique(),
            'empty_text_records':int(frame.empty_text.sum()),'media_records':int(frame.has_media.sum()),
            'iran_keyword_candidates':len(selected),'duplicate_candidate_text_records':int(selected.duplicate_text_other_id.sum()),
-           'window':'2026-01-01 through 2026-09-16 inclusive; America/New_York',
+           'window':'2026-01-01 through 2026-09-18 inclusive; America/New_York',
            'regex':RELEVANCE.pattern,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
            'monthly_candidate_counts':monthly.to_dict(),'sentiment_scores_produced':False,
            'coverage':'All literal keyword matches in retrieved text; not all Iran posts. Media, implicit references, deletions and unknown archive gaps remain.',

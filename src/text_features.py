@@ -8,6 +8,7 @@ relevance and attention counts use the complete original text independently.
 from pathlib import Path
 from collections import Counter
 from datetime import datetime, timezone
+from .study_config import CONTENT_END_EXCLUSIVE
 import hashlib
 import json
 import re
@@ -152,7 +153,7 @@ def build():
     original_count = len(docs)
     pub = pd.to_datetime(docs.published_utc, utc=True)
     mod = pd.to_datetime(docs.modified_utc, utc=True, errors='coerce').fillna(pub)
-    late = pd.concat([pub,mod],axis=1).max(axis=1).ge(pd.Timestamp('2026-09-17',tz='UTC'))
+    late = pd.concat([pub,mod],axis=1).max(axis=1).ge(pd.Timestamp(CONTENT_END_EXCLUSIVE,tz='America/New_York').tz_convert('UTC'))
     late_count = int(late.sum())
     # A later revised body cannot enter either timing convention or IDF fitting.
     docs = docs.loc[~late].reset_index(drop=True)
@@ -166,7 +167,7 @@ def build():
     # Later modifications may change the entire body; use the later clock conservatively.
     effective = pd.concat([publication, modification],axis=1).max(axis=1)
     frame['effective_utc'] = effective
-    frame['modified_after_cutoff'] = effective.ge(pd.Timestamp('2026-09-17',tz='UTC'))
+    frame['modified_after_cutoff'] = effective.ge(pd.Timestamp(CONTENT_END_EXCLUSIVE,tz='America/New_York').tz_convert('UTC'))
     changes = pd.read_csv(ROOT/'data/processed/market_changes.csv',index_col=0,parse_dates=True)
     all_sessions = changes.dropna(subset=['sp500']).index
     sessions = all_sessions[all_sessions >= '2026-01-01']

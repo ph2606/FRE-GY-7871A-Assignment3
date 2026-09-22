@@ -9,6 +9,7 @@ from pathlib import Path
 import hashlib
 import io
 import json
+import shutil
 import time
 from urllib.parse import quote
 
@@ -18,7 +19,7 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 START = "2025-12-15"
-CUTOFF = "2026-09-16"
+CUTOFF = "2026-09-18"
 SERIES = ["DCOILWTICO", "DCOILBRENTEU", "DGS2", "DGS10", "DGS3MO", "T10YIE", "BAMLC0A4CBBB", "BAMLH0A0HYM2", "DTWEXBGS"]
 SYMBOLS = ["CL=F", "BZ=F", "^GSPC", "^IXIC", "^VIX", "DX-Y.NYB", "EFA", "EEM", "GLD"]
 SPECS = [
@@ -47,17 +48,42 @@ def _now():
     return datetime.now(timezone.utc).isoformat()
 
 
-def fetch_bytes(url, path, params=None):
-    """Cache exact responses and original retrieval time; do not redownload a vintage."""
+def _archive_snapshot(raw):
+    """Copy the old raw/processed vintage before an explicitly requested refresh."""
+    old_manifest = raw / "manifest.json"
+    if not old_manifest.exists():
+        return None
+    old_bytes = old_manifest.read_bytes()
+    old = json.loads(old_bytes)
+    key = f"cutoff_{old.get('cutoff_inclusive', 'unknown')}_{hashlib.sha256(old_bytes).hexdigest()[:12]}"
+    destination = raw / "versions" / key
+    destination.mkdir(parents=True, exist_ok=True)
+    for source in raw.iterdir():
+        if source.is_file() and not (destination / source.name).exists():
+            shutil.copy2(source, destination / source.name)
+    for name in ["market_levels.csv", "market_changes.csv", "market_manifest.json"]:
+        source = ROOT / "data/processed" / name
+        target = destination / "processed_snapshot" / name
+        if source.exists() and not target.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+    return destination.relative_to(ROOT).as_posix()
+
+
+def fetch_bytes(url, path, params=None, refresh=False):
+    """Verify a cache, or refresh it while preserving an honest fallback on failure."""
     sidecar = path.with_suffix(path.suffix + ".metadata.json")
+    cached = None
     if path.exists() and sidecar.exists():
         payload = path.read_bytes()
         metadata = json.loads(sidecar.read_text(encoding="utf-8"))
         if hashlib.sha256(payload).hexdigest() != metadata["sha256"]:
             raise ValueError(f"Cached response hash mismatch: {path}")
-        if metadata.get("request_start") != START or metadata.get("request_cutoff_inclusive") != CUTOFF:
+        cached = (payload, metadata)
+        if not refresh and (metadata.get("request_start") != START or metadata.get("request_cutoff_inclusive") != CUTOFF):
             raise ValueError(f"Cached response has a different requested window: {path}")
-        return payload, metadata
+        if not refresh:
+            return cached
     errors = []
     for attempt in range(4):
         try:
@@ -80,7 +106,13 @@ def fetch_bytes(url, path, params=None):
             return payload, metadata
         except (requests.RequestException, ValueError) as exc:
             errors.append({"attempt": attempt + 1, "at_utc": _now(), "error": str(exc)})
-            if attempt == 3:
+            permanent = isinstance(exc, requests.HTTPError) and exc.response is not None and exc.response.status_code in (400, 401, 402, 403, 404, 429)
+            if attempt == 3 or permanent:
+                if cached is not None:
+                    payload, metadata = cached
+                    metadata = dict(metadata)
+                    metadata.update(refresh_failed=True, refresh_cutoff_requested=CUTOFF, refresh_errors=errors)
+                    return payload, metadata
                 raise RuntimeError(json.dumps(errors)) from exc
             time.sleep(2 ** attempt)
 
@@ -90,13 +122,14 @@ def _coverage(frame, column):
     return {"first": s.index.min().strftime("%Y-%m-%d") if len(s) else None,
             "last": s.index.max().strftime("%Y-%m-%d") if len(s) else None,
             "observations": int(len(s)), "observations_2026": int((s.index >= "2026-01-01").sum()),
+            "observations_since_2026_02_28": int((s.index >= "2026-02-28").sum()),
             "missing_returned_rows": int(frame[column].isna().sum())}
 
 
-def _fred(sid):
+def _fred(sid, refresh=False):
     raw = ROOT / "data/raw/market"
     payload, metadata = fetch_bytes("https://fred.stlouisfed.org/graph/fredgraph.csv", raw / f"{sid}.csv",
-                                    {"id": sid, "cosd": START, "coed": CUTOFF})
+                                    {"id": sid, "cosd": START, "coed": CUTOFF}, refresh=refresh)
     frame = pd.read_csv(io.BytesIO(payload), index_col=0, parse_dates=True)
     if sid not in frame:
         raise ValueError(f"FRED response missing {sid}")
@@ -107,14 +140,14 @@ def _fred(sid):
     return frame, metadata
 
 
-def _yahoo(symbol):
+def _yahoo(symbol, refresh=False):
     raw = ROOT / "data/raw/market"
     start = int(pd.Timestamp(START, tz="America/New_York").timestamp())
     # Yahoo period2 is exclusive; the following local midnight includes cutoff close.
     end = int((pd.Timestamp(CUTOFF, tz="America/New_York") + pd.Timedelta(days=1)).timestamp())
     payload, metadata = fetch_bytes(f"https://query1.finance.yahoo.com/v8/finance/chart/{quote(symbol, safe='')}",
                                     raw / f"{symbol}.json",
-                                    {"period1": start, "period2": end, "interval": "1d", "events": "div,splits"})
+                                    {"period1": start, "period2": end, "interval": "1d", "events": "div,splits"}, refresh=refresh)
     chart = json.loads(payload)["chart"]
     if chart.get("error") or not chart.get("result"):
         raise ValueError(f"Yahoo error for {symbol}: {chart.get('error')}")
@@ -165,27 +198,35 @@ def daily_changes(levels):
     return result
 
 
-def download():
+def download(refresh=False):
     """Write raw provenance, levels, changes, and a machine-readable schema."""
     raw = ROOT / "data/raw/market"
     processed = ROOT / "data/processed"
     raw.mkdir(parents=True, exist_ok=True)
     processed.mkdir(parents=True, exist_ok=True)
+    old_manifest = raw / "manifest.json"
+    previous_manifest = json.loads(old_manifest.read_text(encoding="utf-8")) if old_manifest.exists() else {}
+    old_cutoff = previous_manifest.get("cutoff_inclusive")
+    refresh = refresh or (old_cutoff is not None and old_cutoff != CUTOFF)
+    archived = _archive_snapshot(raw) if refresh else previous_manifest.get("archived_prior_vintage")
     frames, metadata, failures = [], [], []
     jobs = [("FRED", sid, _fred) for sid in SERIES] + [("Yahoo", symbol, _yahoo) for symbol in SYMBOLS]
     with ThreadPoolExecutor(max_workers=4) as pool:
-        pending = [(provider, name, pool.submit(fn, name)) for provider, name, fn in jobs]
+        pending = [(provider, name, pool.submit(fn, name, refresh)) for provider, name, fn in jobs]
         for provider, name, future in pending:
             try:
                 frame, info = future.result()
                 frames.append(frame)
                 metadata.append(info)
+                if info.get("refresh_failed"):
+                    failures.append({"provider": provider, "series": name, "status": "cached fallback after refresh failure", "errors": info["refresh_errors"]})
                 print(f"{name:12s} {info['first']}..{info['last']} n={info['observations']} (2026={info['observations_2026']})", flush=True)
             except Exception as exc:
                 failures.append({"provider": provider, "series": name, "at_utc": _now(), "error": str(exc)})
                 print(f"FAILED {name}: {exc}", flush=True)
     manifest = {"assembled_utc": _now(), "start": START, "cutoff_inclusive": CUTOFF,
-                "missing_value_policy": "No imputation or forward filling", "series": metadata, "failures": failures}
+                "missing_value_policy": "No imputation or forward filling", "series": metadata, "failures": failures,
+                "archived_prior_vintage": archived, "refresh_requested": refresh}
     (raw / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     if not frames:
         raise RuntimeError("All market requests failed; see raw market manifest")

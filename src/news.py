@@ -14,10 +14,11 @@ import time
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+from .study_config import CONTEXT_START, CONTENT_END_EXCLUSIVE, MARKET_END, NEWS_DISCOVERY_SNAPSHOT
 
 ROOT = Path(__file__).resolve().parents[1]
-START = pd.Timestamp('2026-01-01', tz='UTC')
-END = pd.Timestamp('2026-09-17', tz='UTC')
+START = pd.Timestamp(CONTEXT_START, tz='UTC')
+END = pd.Timestamp(CONTENT_END_EXCLUSIVE, tz='America/New_York').tz_convert('UTC')
 RAW = ROOT / 'data/raw/news'
 MONTHS = {m: i+1 for i, m in enumerate('jan feb mar apr may jun jul aug sep oct nov dec'.split())}
 
@@ -59,7 +60,7 @@ def discover():
     # Each page contains 20 cards. Continue until every date on a page predates 2026.
     for page in range(1, 301):
         url = f'https://www.theguardian.com/world/iran?page={page}'
-        path = RAW / 'archive' / f'{page:03d}.html'
+        path = RAW / ('archive_'+NEWS_DISCOVERY_SNAPSHOT) / f'{page:03d}.html'
         payload = fetch(url, path)
         rows = parse_archive(payload, page)
         if not rows:
@@ -75,7 +76,7 @@ def discover():
     else:
         raise RuntimeError('Archive cap reached before the start date.')
     frame = pd.DataFrame(records).drop_duplicates('url')
-    frame = frame.loc[frame.url_date.between('2026-01-01', '2026-09-16')].copy()
+    frame = frame.loc[frame.url_date.between(CONTEXT_START, MARKET_END)].copy()
     frame['exclusion'] = ''
     frame.loc[~frame.section.isin(['world', 'us-news', 'business', 'environment', 'global-development', 'science']), 'exclusion'] = 'non-news section'
     frame.loc[frame.url.str.contains('/live/|/video/|/audio/|/gallery/'), 'exclusion'] = 'live blog or multimedia'

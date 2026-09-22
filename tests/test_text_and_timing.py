@@ -145,7 +145,7 @@ def test_excluded_article_does_not_download(monkeypatch):
 @pytest.mark.parametrize("stamp,expected", [
     ("2026-01-05T10:00:00", "publication timezone missing"),
     ("2025-12-31T23:59:59Z", "timestamp outside information set"),
-    ("2026-09-17T00:00:00Z", "timestamp outside information set"),
+    (news.END.isoformat(), "timestamp outside information set"),
     ("", "missing publication timestamp"),
 ])
 def test_article_rejects_unusable_publication_clock(tmp_path, monkeypatch, stamp, expected):
@@ -174,7 +174,7 @@ def built_sample(tmp_path, monkeypatch):
     docs = [document("short", 20, 1, "2026-01-02T10:00:00Z"),
             document("long", 80, 1, "2026-01-02T11:00:00Z"),
             document("revised", 40, 2, "2026-01-02T12:00:00Z", "2026-01-06T10:00:00Z"),
-            document("future", 30, 3, "2026-01-02T13:00:00Z", "2026-09-17T01:00:00Z"),
+            document("future", 30, 3, "2026-01-02T13:00:00Z", (news.END+pd.Timedelta(hours=1)).isoformat()),
             document("excluded", 20, 4, "2026-01-05T12:00:00Z", excluded="exact duplicate body")]
     pd.DataFrame(docs).to_csv(processed / "news_documents.csv", index=False)
     sessions = pd.to_datetime(["2025-12-31", "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-09-16"])

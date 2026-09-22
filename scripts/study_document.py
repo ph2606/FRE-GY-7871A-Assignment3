@@ -75,18 +75,19 @@ def displays():
         day=e.market_date[:10]
         low=match.at[day,'low_date'] if day in match.index else ''
         comparison=str(low)[5:10] if pd.notna(low) and low else 'Unavailable'
-        information=esc(e.war_risk)+'. '+r'\href{'+esc(e.source_url)+'}{'+esc(e.description)+'}. '+esc(e.cash_window)+'.'
-        rows.append([esc(e.event_date[5:]+' '+e.weekday[:3]),esc(day[5:]),esc(comparison),information])
-    result['table1']=r'\textbf{Table 1. Dated Iran-war information and assigned US sessions (2026).}'+table(
-        ['Event date','US session','L session','Information, source and cash-equity clock'],rows,
-        layout=r'p{.12\linewidth}p{.10\linewidth}p{.10\linewidth}p{.57\linewidth}',raw=True,long=True)
+        information=r'\href{'+esc(e.source_url)+'}{'+esc(e.description)+'}. '+esc(e.event_date[5:]+' '+e.weekday[:3]+', '+e.cash_window)+'.'
+        rows.append([esc(day[5:]),str(int(e.war_articles)),number(e.intensity,2),esc(comparison),information])
+    result['table1']=fig('study_news','.88')+r'\textbf{Table 1. NLP high-news sessions and illustrative source headlines (2026).}'+table(
+        ['H session','Articles','Per day','L session','Illustrative headline, source date and clock'],rows,
+        layout=r'p{.08\linewidth}rrp{.09\linewidth}p{.56\linewidth}',raw=True,long=True)
     rows=[]
     for x in t2.itertuples():
         effects=[]
         for name in ['omega1','omega2','pooled']:
             effect=getattr(x,name+'_effect');t=getattr(x,name+'_abs_t_hc1')
             effects.append('—' if pd.isna(effect) else number(effect)+r' ('+number(t,2)+')')
-        rows.append([esc(x.label),esc(x.unit),str(int(x.n_high)) if x.available else '—',*effects,'W' if x.available else '—'])
+        flag=('W' if x.weak_reference_variance_shift else '') if x.available else '—'
+        rows.append([esc(x.label),esc(x.unit),str(int(x.n_high)) if x.available else '—',*effects,flag])
     result['table2']=r'\textbf{Table 2. Response to a conditional 25-bp two-year-yield decline.}'+table(
         ['Outcome','Unit','Pairs','Reference IV','Outcome IV','Pooled IV',''],rows,
         layout=r'p{.245\linewidth}lrrrrl',raw=True,size='footnotesize')+r'\par\footnotesize Effects with absolute HC1 t-statistics in parentheses. W: uncertain positive reference-variance shift. All available rows are conditional diagnostics; no strong-identification significance stars are used.\normalsize'
@@ -101,12 +102,30 @@ def displays():
         layout=r'p{.24\linewidth}lrrrrr',size='footnotesize')+r'\par\footnotesize Squared units apply to L, H and predicted variance; both share columns are percentages. No causal lower bound is established.\normalsize'
     robust=pd.read_csv(OUT/'paper_robustness.csv');rows=[]
     base=t2.set_index('variable')
-    rows.append(['Main fitted curve','23']+[number(base.at[k,'pooled_effect'],2) for k in ['ten_year','sp500','wti_spot','brent_spot']])
+    rows.append(['Main fitted curve',str(int(base.at['ten_year','n_high']))]+[number(base.at[k,'pooled_effect'],2) for k in ['ten_year','sp500','wti_spot','brent_spot']])
     for spec,a in robust.groupby('specification',sort=False):
         a=a.set_index('variable')
         rows.append([spec,str(int(a.at['ten_year','n_high']))]+[number(a.at[k,'pooled_effect'],2) for k in ['ten_year','sp500','wti_spot','brent_spot']])
     result['robust']=fig('study_identification')+table(['Specification','2y/10y pairs','10y pp','S&P %','WTI %','Brent %'],rows,
             layout=r'p{.29\linewidth}rrrrr')+r'\par\footnotesize Pair counts shown are for the ten-year outcome; oil can have fewer complete pairs.\normalsize'
+    benchmark=pd.read_csv(OUT/'benchmark_expectations.csv');rows=[]
+    for x in benchmark.itertuples():
+        expected='Ambiguous' if pd.isna(x.iran_expected_sign) else ('Up' if x.iran_expected_sign>0 else 'Down')
+        historical=number(x.original_2003_effect)
+        if x.variable=='gold_gld':historical+=' $/oz'
+        rows.append([x.label,x.unit_2026,historical,expected,number(x.iran_plus25bp_scenario)])
+    result['benchmark']=table(['Outcome','Iran unit','Iraq −25 bp','Iran hypothesis','Iran +25 bp'],rows,
+        layout=r'p{.29\linewidth}lrrr')+r'\par\footnotesize Historical oil is a 12-month contract in dollars per barrel; Iran nearby oil uses a different maturity. Historical gold is dollars per ounce; Iran is GLD percent. Scenarios rescale the same estimates; they do not identify shock direction.\normalsize'
+    directional=pd.read_csv(OUT/'directional_regime_markets.csv');rows=[]
+    for regime,frame in directional.groupby('regime',sort=False):
+        a=frame.set_index('outcome')
+        cells=[number(a.at[k,'mean_change'],3)+' ('+str(int(a.at[k,'observations']))+')' for k in ['ten_year','wti_spot','brent_spot','sp500']]
+        rows.append([regime,str(int(frame.sessions.iloc[0])),*cells])
+    result['direction']=table(['Text state','Sessions','10y pp','WTI %','Brent %','S&P %'],rows,
+        layout=r'p{.27\linewidth}rrrrr')+r'\par\footnotesize Conditional daily means; available observations in parentheses. Labels describe headline language. These are not identified causal responses.\normalsize'
+    phrases=json.loads((OUT/'phrase_audit_summary.json').read_text())
+    rows=[[key.replace('_',' ').replace(' cue',''),str(value)] for key,value in phrases['cue_document_counts'].items()]
+    result['phrases']=table(['Review cue','Documents'],rows,layout=r'p{.74\linewidth}r')+r'\par\footnotesize Cues overlap and flag interpretation risks. They are not validated labels or war-ending probabilities.\normalsize'
     news=json.loads((OUT/'duration_manifest.json').read_text())
     rows=[[k,f'{v:,}'] for k,v in news['guardian_categories'].items()]
     rows += [['GDELT: '+k,f'{v:,}'] for k,v in news['gdelt_categories'].items()]
@@ -132,7 +151,7 @@ def build_notebook(blocks):
     notebook=nbf.v4.new_notebook()
     notebook.cells=[nbf.v4.new_markdown_cell('# Iran war risk and global financial markets in 2026\n\n'
         '**Panagiotis Housos · ph2606**  \nFRE-GY 7871A · NLP and the Investment Process · Assignment 3  \n'
-        'Observation cutoff: **16 September 2026**. Prepared 19 September 2026.  \n'
+        'Main window: **28 February–18 September 2026**. Prepared 21 September 2026.  \n'
         'This notebook contains saved outputs. Follow the README to acquire the local inputs before executing it.')]
     for i,b in enumerate(blocks,1):
         notebook.cells.append(nbf.v4.new_markdown_cell(f'## {i}. '+b['title']+'\n\n'+b['text']))

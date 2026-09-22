@@ -56,7 +56,7 @@ def canonical_url(url):
 def build():
     out=ROOT/'outputs';out.mkdir(exist_ok=True)
     levels=pd.read_csv(ROOT/'data/processed/market_levels.csv',index_col=0,parse_dates=True)
-    observed=levels['^GSPC_close'].dropna().loc['2026-01-01':'2026-09-16'].index
+    observed=levels['^GSPC_close'].dropna().loc['2026-01-01':'2026-09-18'].index
     schedule=nyse_schedule_2026()
     docs=pd.read_csv(ROOT/'data/processed/news_features.csv').fillna('')
     rows=[]
@@ -75,17 +75,20 @@ def build():
     bulk['recent_event']=bulk.recent_event.astype(str).str.lower().eq('true')
     for col in ['cessation_code','fighting_code','war_event_record']:
         bulk[col]=bulk[col].astype(str).str.lower().eq('true')
+    bulk['iran_actor']=bulk.actor1_country.eq('IRN') | bulk.actor2_country.eq('IRN')
     source=bulk.groupby('url_key',sort=True).agg(url=('url','first'),first_archive_date=('archive_date','min'),
           last_archive_date=('archive_date','max'),event_records=('event_id','size'),
           cessation_report=('cessation_code','any'),fighting_report=('fighting_code','any'),
-          recent_war_record=('war_event_record','any'))
+          recent_war_record=('war_event_record','any'),iran_actor=('iran_actor','any'))
     source['category']=np.select([source.cessation_report & source.fighting_report,source.cessation_report,source.fighting_report],
           ['Mixed cessation and fighting codes','Cessation/truce/withdrawal code','Fighting/violence code'],default='Other Iran-related code')
     source['text_basis']='GDELT CAMEO event codes; source article text not returned'
     source.to_csv(out/'gdelt_source_classification.csv',index=False)
     # One count per source URL and availability session, not one per repeated
     # actor-event record. Older-event mentions stay in the audit, not the signal.
-    active=bulk.loc[bulk.recent_event & (bulk.cessation_code|bulk.fighting_code)].copy()
+    # Action-geography-only matches can include unrelated events. Require an
+    # Iran-coded actor for the empirical signal; retain broader rows in audits.
+    active=bulk.loc[bulk.iran_actor & bulk.recent_event & (bulk.cessation_code|bulk.fighting_code)].copy()
     mapping={stamp:timing_fields(pd.Timestamp(stamp),schedule,observed)['reaction_close_session']
              for stamp in active.conservative_available_et.unique()}
     active['session']=pd.to_datetime(active.conservative_available_et.map(mapping))
@@ -115,6 +118,9 @@ def build():
       'sessions_with_no_guardian_war_article':int(daily.any_guardian_war_news.eq(0).sum()),
       'guardian_clock_states':headlines.cash_equity_state.value_counts().to_dict(),
       'guardian_friday_sunday':int(headlines.is_friday_to_sunday.sum()),
+      'gdelt_signal_scope':'Recent event, IRN actor, and cessation or fighting CAMEO code; geography-only records excluded from empirical counts.',
+      'gdelt_strict_event_records':int((bulk.iran_actor & bulk.war_event_record).sum()),
+      'gdelt_geo_only_war_records_excluded':int((~bulk.iran_actor & bulk.war_event_record).sum()),
       'interpretation':'Nominal physical-event/topic categories, not war-end probabilities or official/policy sentiment scores.',
       'caveat':'Mixed and unclear items remain explicit. A ceasefire declaration or reopened waterway does not establish permanent war termination.'}
     (out/'duration_manifest.json').write_text(json.dumps(summary,indent=2),encoding='utf-8')

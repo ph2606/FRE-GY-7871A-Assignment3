@@ -158,3 +158,12 @@ def test_full_panel_disagreement_is_rejected_instead_of_using_inconsistent_units
     full["y"] *= 100
     with pytest.raises(ValueError, match="values disagree"):
         tables(panel, full)
+
+
+def test_identical_anchor_samples_share_variance_shift_bootstrap_draws():
+    panel=system()
+    panel['other']=panel.y*2+panel.x*.3
+    result=replicate_tables(panel,['y','other'],full_panel=panel,reference='x',bootstrap=99)
+    diagnostics=result['diagnostics']
+    for name in ['delta_xx_raw_ci_low','delta_xx_raw_ci_high','delta_xx_bootstrap_pct_nonpositive']:
+        assert diagnostics[name].nunique()==1

@@ -10,8 +10,9 @@ ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'outputs'
 
 def build():
     style()
-    lev=pd.read_csv(ROOT/'data/processed/market_levels.csv',index_col=0,parse_dates=True).loc['2026-01-01':]
-    gsw=pd.read_csv(ROOT/'data/processed/offrun_yields.csv',index_col=0,parse_dates=True).loc['2026-01-01':]
+    from .study_config import MARKET_END
+    lev=pd.read_csv(ROOT/'data/processed/market_levels.csv',index_col=0,parse_dates=True).loc['2026-02-27':MARKET_END]
+    gsw=pd.read_csv(ROOT/'data/processed/offrun_yields.csv',index_col=0,parse_dates=True).loc['2026-02-27':MARKET_END]
     fig,axes=plt.subplots(3,1,figsize=(9,7.8),sharex=True)
     for col,label,color in [('DCOILWTICO','WTI spot',TEAL),('DCOILBRENTEU','Brent spot',NAVY)]:
         s=lev[col].dropna();axes[0].plot(s.index,s,label=label,color=color)
@@ -29,17 +30,20 @@ def build():
     axes[0].set_ylabel('Yield, %');axes[0].set_title('Treasury yields and global financial markets',loc='left');axes[0].legend(ncol=2,fontsize=8)
     for c,label,color in [('^GSPC_close','S&P 500',NAVY),('EFA','EFA',TEAL),('EEM','EEM',GOLD),('GLD','GLD',RED)]:
         s=lev[c].dropna();axes[1].plot(s.index,100*(s/s.iloc[0]-1),label=label,color=color)
-    axes[1].set_ylabel('Change from first\n2026 observation, %');axes[1].legend(ncol=4,fontsize=8)
+    axes[1].set_ylabel('Change from February 27\nprewar close, %');axes[1].legend(ncol=4,fontsize=8)
     for ax in axes:dates(ax)
     fig.tight_layout();save(fig,'study_markets')
     news=pd.read_csv(OUT/'binary_news_days.csv',index_col=0,parse_dates=True)
     fig,axes=plt.subplots(3,1,figsize=(9,7),sharex=True,gridspec_kw={'height_ratios':[1,1,.6]})
-    for i,(name,label,color) in enumerate([('fighting','Fighting-coded source URLs',RED),('cessation','Cessation-coded source URLs',TEAL)]):
-        axes[i].bar(news.index,news[name+'_sources'],color=color,width=1.7,alpha=.65)
-        axes[i].set_ylabel('Source URLs');axes[i].set_title(label,loc='left',fontsize=10)
-    axes[2].scatter(news.index,news.major_war_news_day,color=NAVY,s=12)
-    axes[2].set_yticks([0,1],['0: comparison','1: major event']);axes[2].set_ylim(-.15,1.15)
-    axes[2].set_xlabel('2026 US equity session • GDELT counts use next-day archive availability')
+    regimes=json.loads((OUT/'nlp_regimes_summary.json').read_text())
+    axes[0].bar(news.index,news.intensity,color=NAVY,width=1.7,alpha=.7)
+    axes[0].axhline(regimes['threshold_articles_per_calendar_day'],ls='--',color=RED,label='Active-window 75th percentile')
+    axes[0].set_ylabel('Articles / elapsed day');axes[0].set_title('Primary regime: relevant publisher-news intensity',loc='left',fontsize=10);axes[0].legend(fontsize=8)
+    axes[1].bar(news.index,news.gdelt_war_sources,color=TEAL,width=1.7,alpha=.65)
+    axes[1].set_ylabel('Source URLs');axes[1].set_title('GDELT robustness: recent Iranian-actor conflict sources',loc='left',fontsize=10)
+    axes[2].scatter(news.index,news.high,color=NAVY,s=12)
+    axes[2].set_yticks([0,1],['0: low news','1: high news']);axes[2].set_ylim(-.15,1.15)
+    axes[2].set_xlabel('2026 US equity session • GDELT uses next-day archive availability')
     for ax in axes:dates(ax);ax.axvline(pd.Timestamp('2026-03-02'),ls=':',color=GRAY)
     fig.tight_layout();save(fig,'study_news')
     rank=json.loads((OUT/'paper_rank.json').read_text());mat=np.array(rank['standardized_covariance_contrast'])

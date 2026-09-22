@@ -155,7 +155,7 @@ def daily_counts(audit, schedule, observed_sessions):
     Calendar rows and session rows are deliberately separate. A zero is not a
     statement that there was no war news, omitted media post, or conflict risk.
     """
-    calendar = pd.DataFrame(index=pd.date_range('2026-01-01', '2026-09-16'))
+    calendar = pd.DataFrame(index=pd.date_range('2026-01-01', '2026-09-18'))
     calendar.index.name = 'date_et'
     day = pd.to_datetime(audit.publication_date_et)
     calendar['candidate_posts'] = audit.groupby(day).size().reindex(calendar.index, fill_value=0)
@@ -168,7 +168,7 @@ def daily_counts(audit, schedule, observed_sessions):
         calendar['cue_' + key + '_posts'] = audit['cue_' + key].groupby(day).sum().reindex(calendar.index, fill_value=0)
 
     observed = pd.DatetimeIndex(observed_sessions)
-    observed = observed[(observed >= '2026-01-01') & (observed <= '2026-09-16')]
+    observed = observed[(observed >= '2026-01-01') & (observed <= '2026-09-18')]
     session = pd.DataFrame(index=observed)
     session.index.name = 'session_date'
     for column, prefix in [('reaction_close_session', 'close_window'), ('next_open_session', 'before_next_open')]:
@@ -224,7 +224,7 @@ def build(root=ROOT):
     calendar, session = daily_counts(audit, schedule, observed)
     summary = {
         'candidate_records': len(audit), 'platform': 'Truth Social',
-        'publication_window_et': '2026-01-01 through 2026-09-16 inclusive',
+        'publication_window_et': '2026-01-01 through 2026-09-18 inclusive',
         'input_sha256': source_hashes,
         'calendar_source': CALENDAR_URL, 'calendar_verified_date': CALENDAR_CHECKED,
         'core_hours_et': '09:30 <= timestamp < 16:00; scheduled early closes use 13:00',

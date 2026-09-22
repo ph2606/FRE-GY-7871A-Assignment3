@@ -295,7 +295,9 @@ def replicate_tables(estimation_panel: pd.DataFrame, outcomes: Sequence[str], *,
                 "variance_high": np.nan, "predicted_variance_change": np.nan,
                 "high_variance_share_pct": np.nan, "all_variance_share_pct": np.nan})
             continue
-        result = estimate_response(estimation_panel, reference, outcome, regime, bootstrap, seed + j)
+        # Use common random numbers so identical anchor samples receive the
+        # same variance-shift diagnostic across outcome rows.
+        result = estimate_response(estimation_panel, reference, outcome, regime, bootstrap, seed)
         diagnostic.append(result)
         row = {"variable": outcome, "label": labels.get(outcome, outcome), "available": True,
                "unit": units.get(outcome, "input unit"),
@@ -337,6 +339,7 @@ def replicate_tables(estimation_panel: pd.DataFrame, outcomes: Sequence[str], *,
                 "instruments": ["s*x", "s*y", "[s*x,s*y]"], "moment_divisor": "regime n",
                 "bootstrap_design": "independent_within_regime",
                 "bootstrap_repetitions": int(bootstrap),
+                "common_draws_for_identical_outcome_samples": True,
                 "se_conventions": ["classical no-intercept IV, residual df=n-1", "HC1 IV, n/(n-1) correction"],
                 "variance_interpretation": "Conditional lower-bound calculation requires stable nuisance moments, one changing war-shock variance, stable loadings and serially independent daily changes.",
                 "bootstrap_interpretation": "Supplementary diagnostics; not a source-paper bootstrap recipe or weak-IV-robust confidence set."}}
